@@ -16,7 +16,7 @@
 # Import from the standard library
 from os import listdir
 from os.path import join, exists, splitext
-from re import compile, findall
+from re import compile, search
 from string import Template
 from urlparse import parse_qs
 from wsgiref.simple_server import make_server
@@ -42,6 +42,7 @@ def build_file_list(directory):
         items.append(item)
     return '<ul>\n%s</ul>' % '\n'.join(items)
 
+
 class MynusWiki(object):
 
     page = Template(get_template('page.html'))
@@ -58,7 +59,7 @@ class MynusWiki(object):
         request_method = self.environ['REQUEST_METHOD']
         path_info = self.environ['PATH_INFO']
 
-        matches = findall(ROUTE, path_info)
+        matches = search(ROUTE, path_info)
         if path_info is '/':
             body = '301 Moved Permanently'
             status = '301 %s' % body
@@ -73,7 +74,7 @@ class MynusWiki(object):
             headers = [("Content-Type", "text/plain")]
         else:
             method = getattr(self, request_method)
-            status, headers, body = method(*matches)
+            status, headers, body = method(*matches.groups())
 
         start_response(status, headers)
         return body
