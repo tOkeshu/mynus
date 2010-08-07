@@ -15,7 +15,7 @@
 
 # Import from the standard library
 from os import listdir
-from os.path import join, exists
+from os.path import join, exists, splitext
 from re import compile, findall
 from string import Template
 from urlparse import parse_qs
@@ -26,15 +26,26 @@ from wsgiref.util import request_uri
 DB_URI = 'db'
 ROUTE = compile('^/pages/([^/]*)$')
 TEMPLATE_DIR = 'templates'
+PATTERN = compile('(.*).md$')
 
 def get_template(name):
     template_uri = join(TEMPLATE_DIR, name)
     return open(template_uri).read()
 
 
+def build_file_list(directory):
+    filenames = listdir(directory)
+    items = []
+    for filename in filenames:
+        name, extension = splitext(filename)
+        item = '<li><a href="/pages/%s">%s</li>' % (name, name)
+        items.append(item)
+    return '<ul>\n%s</ul>' % '\n'.join(items)
+
 class MynusWiki(object):
 
     page = Template(get_template('page.html'))
+    pages = Template(get_template('pages.html'))
     new_page = Template(get_template('new.html'))
 
     def __init__(self, directory=DB_URI):
@@ -69,7 +80,6 @@ class MynusWiki(object):
 
 
     def GET(self, name):
-        body = ''
         if name:
             document_uri = join(DB_URI, '%s.md' % name)
             if exists(document_uri):
@@ -81,6 +91,10 @@ class MynusWiki(object):
                 body = self.page.safe_substitute(**vars)
             else:
                 body = self.new_page.safe_substitute(title=name)
+        else:
+            files = build_file_list(self.directory)
+            print files
+            body = self.pages.safe_substitute(title='Pages', files=files)
 
         status = '200 OK'
         headers = [("Content-Type", "text/html")]
