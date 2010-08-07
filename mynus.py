@@ -111,8 +111,8 @@ class MynusWiki(object):
         with open(document_uri, 'w') as document:
             document.write(data)
 
-        body = '301 Moved Permanently'
-        status = '301 %s' % body
+        body = 'See Other'
+        status = '303 %s' % body
         headers = [("Location", "/pages/%s" % name)]
         return status, headers, body
 
