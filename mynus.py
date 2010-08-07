@@ -14,34 +14,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the standard library
-from os import listdir
-from os.path import join, exists, splitext
+from os.path import join, exists
 from re import compile, search
 from string import Template
 from urlparse import parse_qs
 from wsgiref.simple_server import make_server
 from wsgiref.util import request_uri
 
+# Import from utils
+from utils import get_template, build_file_list, redirect, error
+
 
 DB_URI = 'db'
 ROUTE = compile('^/pages/?([^/]*)$')
-TEMPLATE_DIR = 'templates'
 PATTERN = compile('(.*).md$')
-
-def get_template(name):
-    template_uri = join(TEMPLATE_DIR, name)
-    return open(template_uri).read()
-
-
-def build_file_list(directory):
-    filenames = listdir(directory)
-    items = []
-    for filename in filenames:
-        name, extension = splitext(filename)
-        item = '<li><a href="/pages/%s">%s</li>' % (name, name)
-        items.append(item)
-    return '<ul>\n%s</ul>' % '\n'.join(items)
-
 
 class MynusWiki(object):
 
@@ -61,21 +47,13 @@ class MynusWiki(object):
 
         matches = search(ROUTE, path_info)
         if path_info is '/':
-            body = '301 Moved Permanently'
-            status = '301 %s' % body
-            headers = [("Location", "/pages/index")]
+            status, headers, body = redirect(301, '/pages/index')
         elif path_info.endswith('/'):
-            body = '301 Moved Permanently'
-            status = '301 %s' % body
-            headers = [("Location", path_info[:-1])]
+            status, headers, body = redirect(301, path_info[:-1])
         elif not matches:
-            body = 'Not Found'
-            status = '404 %s' % body
-            headers = [("Content-Type", "text/plain")]
+            status, headers, body = error(404)
         elif not hasattr(self, request_method):
-            body = 'Unsupported method (%s)' % request_method
-            status = '501 %s' % body
-            headers = [("Content-Type", "text/plain")]
+            status, headers, body = error(501)
         else:
             method = getattr(self, request_method)
             status, headers, body = method(*matches.groups())
@@ -101,9 +79,7 @@ class MynusWiki(object):
             print files
             body = self.pages.safe_substitute(title='Pages', files=files)
 
-        status = '200 OK'
-        headers = [("Content-Type", "text/html")]
-        return status, headers, body
+        return '200 OK', [("Content-Type", "text/html")], body
 
 
     def POST(self, name):
@@ -116,9 +92,7 @@ class MynusWiki(object):
         with open(document_uri, 'w') as document:
             document.write(data)
 
-        body = 'See Other'
-        status = '303 %s' % body
-        headers = [("Location", "/pages/%s" % name)]
+        status, headers, body = redirect(303, '/pages/%s' % name)
         return status, headers, body
 
 
