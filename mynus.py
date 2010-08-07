@@ -24,7 +24,7 @@ from wsgiref.util import request_uri
 
 
 DB_URI = 'db'
-ROUTE = compile('^/pages/([^/]*)$')
+ROUTE = compile('^/pages/?([^/]*)$')
 TEMPLATE_DIR = 'templates'
 PATTERN = compile('(.*).md$')
 
@@ -64,6 +64,10 @@ class MynusWiki(object):
             body = '301 Moved Permanently'
             status = '301 %s' % body
             headers = [("Location", "/pages/index")]
+        elif path_info.endswith('/'):
+            body = '301 Moved Permanently'
+            status = '301 %s' % body
+            headers = [("Location", path_info[:-1])]
         elif not matches:
             body = 'Not Found'
             status = '404 %s' % body
