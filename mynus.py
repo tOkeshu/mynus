@@ -18,7 +18,7 @@ from os import makedirs, remove
 from os.path import join, exists
 from re import compile, search
 from string import Template
-from sys import argv
+from sys import argv, exit
 from urlparse import parse_qs
 from wsgiref.simple_server import make_server
 from wsgiref.util import request_uri
@@ -145,7 +145,11 @@ def main():
     # Running the WSGI server:
     httpd = make_server(host, port, mynus_app)
     print('Serving HTTP on http://%s:%d/ ...' % (host, port))
-    httpd.serve_forever()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print 'Stop the server gracefully'
+        exit()
 
 
 if __name__ == '__main__':
