@@ -28,10 +28,24 @@ from utils import get_template, build_file_list, redirect, error
 
 
 DB_URI = 'db'
+# Yes, we have only one route :)
 ROUTE = compile('^/pages/?([^/]*)$')
-PATTERN = compile('(.*).md$')
 
-class MynusWiki(object):
+class Mynus(object):
+    """
+    Mynus is a minimalist wiki.
+
+    Its purpose is to demonstrate the philosophy of "batteries included".
+    Thus, Mynus will never depend on anything else than the Python's standard
+    library.
+
+    The basic URLs are :
+
+    /                   - redirect to /pages/index
+    /pages              - list all the pages of the wiki
+    /pages/{pagename}   - return a specific page
+
+    """
 
     page = Template(get_template('page.html'))
     pages = Template(get_template('pages.html'))
@@ -47,15 +61,21 @@ class MynusWiki(object):
         request_method = self.environ['REQUEST_METHOD']
         path_info = self.environ['PATH_INFO']
 
+        # Routing
         matches = search(ROUTE, path_info)
+        # / -> /pages/index
         if path_info is '/':
             status, headers, body = redirect(301, '/pages/index')
+        # /pages/index/ -> /pages/index
         elif path_info.endswith('/'):
             status, headers, body = redirect(301, path_info[:-1])
+        # /pages/index/something -> not found
         elif not matches:
             status, headers, body = error(404)
+        # BADMETHOD /pages/index -> unsupported
         elif not hasattr(self, request_method):
             status, headers, body = error(501)
+        # GET /pages/index -> GET()
         else:
             method = getattr(self, request_method)
             status, headers, body = method(*matches.groups())
@@ -65,8 +85,10 @@ class MynusWiki(object):
 
 
     def GET(self, name):
+        # Asking for a page
         if name:
             document_uri = join(DB_URI, '%s.md' % name)
+            # The page exists
             if exists(document_uri):
                 data =open(document_uri).read()
                 vars = { 'data': data
@@ -74,8 +96,10 @@ class MynusWiki(object):
                        , 'html_data': data.replace('\n', '<br/>\n')
                        }
                 body = self.page.safe_substitute(**vars)
+            # The page doesn't exists
             else:
                 body = self.new_page.safe_substitute(title=name)
+        # Asking for a list of all pages
         else:
             files = build_file_list(self.directory)
             body = self.pages.safe_substitute(title='Pages', files=files)
@@ -85,10 +109,12 @@ class MynusWiki(object):
 
     def POST(self, name):
         document_uri = join(DB_URI, '%s.md' % name)
+        # Read the body content
         length = int(self.environ['CONTENT_LENGTH'])
         input_data = self.environ['wsgi.input'].read(length)
         input_data = parse_qs(input_data)
 
+        # Store the data in the corresponding file
         data = ''.join(input_data['data'])
         with open(document_uri, 'w') as document:
             document.write(data)
@@ -98,9 +124,15 @@ class MynusWiki(object):
 
 
 def main():
+    """
+    Starts the Mynus application.
+
+    This runs by default an HTTP server on port 8000.
+    """
+    # Default settings
     host = argv[1] if len(argv) >= 2 else 'localhost'
     port = int(argv[2]) if len(argv) >= 3 else 8000
-    mynus_app = MynusWiki()
+    mynus_app = Mynus()
 
     if not exists(DB_URI):
         makedirs(DB_URI)
