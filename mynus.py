@@ -14,9 +14,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the standard library
+from os import makedirs
 from os.path import join, exists
 from re import compile, search
 from string import Template
+from sys import argv
 from urlparse import parse_qs
 from wsgiref.simple_server import make_server
 from wsgiref.util import request_uri
@@ -76,7 +78,6 @@ class MynusWiki(object):
                 body = self.new_page.safe_substitute(title=name)
         else:
             files = build_file_list(self.directory)
-            print files
             body = self.pages.safe_substitute(title='Pages', files=files)
 
         return '200 OK', [("Content-Type", "text/html")], body
@@ -96,9 +97,20 @@ class MynusWiki(object):
         return status, headers, body
 
 
-mynus_app = MynusWiki()
+def main():
+    host = argv[1] if len(argv) >= 2 else 'localhost'
+    port = int(argv[2]) if len(argv) >= 3 else 8000
+    mynus_app = MynusWiki()
 
-# Running the WSGI server:
-httpd = make_server("", 8000, mynus_app)
-httpd.serve_forever()
+    if not exists(DB_URI):
+        makedirs(DB_URI)
+
+    # Running the WSGI server:
+    httpd = make_server(host, port, mynus_app)
+    print('Serving HTTP on http://%s:%d/ ...' % (host, port))
+    httpd.serve_forever()
+
+
+if __name__ == '__main__':
+    main()
 
