@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the standard library
-from os import makedirs
+from os import makedirs, remove
 from os.path import join, exists
 from re import compile, search
 from string import Template
@@ -114,10 +114,15 @@ class Mynus(object):
         input_data = self.environ['wsgi.input'].read(length)
         input_data = parse_qs(input_data)
 
+        data = input_data.get('data', None)
         # Store the data in the corresponding file
-        data = ''.join(input_data['data'])
-        with open(document_uri, 'w') as document:
-            document.write(data)
+        if data:
+            data = ''.join(data)
+            with open(document_uri, 'w') as document:
+                document.write(data)
+        # Or remove the file if there is no data
+        else:
+            remove(document_uri)
 
         status, headers, body = redirect(303, '/pages/%s' % name)
         return status, headers, body
