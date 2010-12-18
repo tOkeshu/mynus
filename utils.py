@@ -15,7 +15,7 @@
 
 # Import from the standard library
 from os import listdir
-from os.path import join, splitext
+from os.path import join, splitext, abspath, dirname
 
 
 RESPONSES = { 200: 'OK'
@@ -24,7 +24,7 @@ RESPONSES = { 200: 'OK'
             , 404: 'Not Found'
             , 501: 'Not Implemented'
             }
-TEMPLATE_DIR = 'templates'
+TEMPLATE_DIR = join(abspath(dirname(__file__)), 'templates')
 
 def get_template(name):
     template_uri = join(TEMPLATE_DIR, name)

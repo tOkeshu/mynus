@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Import from the standard library
-from os import makedirs, remove
+from os import makedirs, remove, getcwd
 from os.path import join, exists
 from re import compile, search
 from string import Template
@@ -27,7 +27,7 @@ from wsgiref.util import request_uri
 from utils import get_template, build_file_list, redirect, error
 
 
-DB_URI = 'db'
+DB_URI = getcwd()
 # Yes, we have only one route :)
 ROUTE = compile('^/pages/?([^/]*)$')
 
@@ -132,7 +132,7 @@ def main():
     """
     Starts the Mynus application.
 
-    This runs by default an HTTP server on port 8000.
+    This runs by default a HTTP server on port 8000.
     """
     # Default settings
     host = argv[1] if len(argv) >= 2 else 'localhost'
