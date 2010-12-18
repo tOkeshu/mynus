@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2010 Romain Gauthier <romain.gauthier@masteri2l.org>
 #
 # This program is free software: you can redistribute it and/or modify

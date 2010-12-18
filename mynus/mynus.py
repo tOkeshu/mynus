@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2010 Romain Gauthier <romain.gauthier@masteri2l.org>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -18,15 +19,10 @@ from os import makedirs, remove, getcwd
 from os.path import join, exists
 from re import compile, search
 from string import Template
-from sys import argv, exit
 from urlparse import parse_qs
-from wsgiref.simple_server import make_server
-from wsgiref.util import request_uri
 
 # Import from utils
 from utils import get_template, build_file_list, redirect, error
-
-__version__ = '0.0.1'
 
 DB_URI = getcwd()
 # Yes, we have only one route :)
@@ -53,6 +49,9 @@ class Mynus(object):
     new_page = Template(get_template('new.html'))
 
     def __init__(self, directory=DB_URI):
+        if not exists(directory):
+            makedirs(directory)
+
         self.directory = directory
         self.environ = None
 
@@ -127,32 +126,4 @@ class Mynus(object):
 
         status, headers, body = redirect(303, '/pages/%s' % name)
         return status, headers, body
-
-
-def main():
-    """
-    Starts the Mynus application.
-
-    This runs by default a HTTP server on port 8000.
-    """
-    # Default settings
-    host = argv[1] if len(argv) >= 2 else 'localhost'
-    port = int(argv[2]) if len(argv) >= 3 else 8000
-    mynus_app = Mynus()
-
-    if not exists(DB_URI):
-        makedirs(DB_URI)
-
-    # Running the WSGI server:
-    httpd = make_server(host, port, mynus_app)
-    print('Serving HTTP on http://%s:%d/ ...' % (host, port))
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print 'Stop the server gracefully'
-        exit()
-
-
-if __name__ == '__main__':
-    main()
 
