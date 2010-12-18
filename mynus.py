@@ -26,6 +26,7 @@ from wsgiref.util import request_uri
 # Import from utils
 from utils import get_template, build_file_list, redirect, error
 
+__version__ = '0.0.1'
 
 DB_URI = getcwd()
 # Yes, we have only one route :)
