@@ -11,6 +11,7 @@ setup( name             = "Mynus"
      , description      = "A minimalist and pure python wiki with no dependencies."
      , long_description = open("README.md").read()
      , license          = "GNU Affero General Public License v3 or later"
+     , url              = "http://pypi.python.org/pypi/Mynus"
 
      , author           = "Romain Gauthier"
      , author_email     = "romain.gauthier@masteri2l.org"
